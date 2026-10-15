@@ -1,0 +1,16 @@
+{
+  "uid": "petshop-logs",
+  "title": "PetShop - Log tập trung (Loki)",
+  "tags": ["petshop", "loki"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    { "id": 1, "type": "timeseries", "title": "Số dòng log/giây theo dịch vụ", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }, "targets": [ { "expr": "sum by (service) (rate({service=~\".+\"}[1m]))", "legendFormat": "{{service}}", "refId": "A" } ] },
+    { "id": 2, "type": "logs", "title": "Log Nginx (access)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 12, "x": 0, "y": 8 }, "targets": [ { "expr": "{service=\"nginx\"}", "refId": "A" } ] },
+    { "id": 3, "type": "logs", "title": "Log ứng dụng Flask", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 12, "x": 12, "y": 8 }, "targets": [ { "expr": "{service=\"app\"}", "refId": "A" } ] },
+    { "id": 4, "type": "logs", "title": "Log lỗi (error / 5xx) của mọi dịch vụ", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 18 }, "targets": [ { "expr": "{service=~\".+\"} |~ \"(?i)error|\\\" 5[0-9][0-9] \"\"", "refId": "A" } ] }
+  ]
+}
