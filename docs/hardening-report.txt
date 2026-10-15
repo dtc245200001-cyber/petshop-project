@@ -1,0 +1,78 @@
+=== 1. USER CHAY TIEN TRINH CHINH (khong phai root) ===
+petshop-nginx          petshop-app            petshop-pgadmin        petshop-db             petshop-grafana        petshop-prometheus     petshop-loki           
+=== 2. CAP_DROP / NO-NEW-PRIVILEGES / READ-ONLY ===
+/petshop-app  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=true
+/petshop-cadvisor  cap_drop=[]  security=[no-new-privileges:true]  read_only=false
+/petshop-db  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-grafana  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-loki  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-nginx  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=true
+/petshop-nginx-exporter  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-pgadmin  cap_drop=[]  security=[no-new-privileges:true]  read_only=false
+/petshop-postgres-exporter  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-prometheus  cap_drop=[ALL]  security=[no-new-privileges:true]  read_only=false
+/petshop-promtail  cap_drop=[]  security=[no-new-privileges:true]  read_only=false
+
+=== 3. CONG DUOC PUBLISH RA NGOAI ===
+NAMES                       PORTS
+petshop-promtail            
+petshop-loki                3100/tcp
+petshop-grafana             3000/tcp
+petshop-prometheus          127.0.0.1:9090->9090/tcp
+petshop-nginx-exporter      
+petshop-postgres-exporter   9187/tcp
+petshop-cadvisor            8080/tcp
+petshop-nginx               0.0.0.0:80->8080/tcp, :::80->8080/tcp, 0.0.0.0:443->8443/tcp, :::443->8443/tcp
+petshop-app                 127.0.0.1:5000->5000/tcp
+petshop-pgadmin             80/tcp, 443/tcp, 127.0.0.1:5050->8080/tcp
+petshop-db                  
+
+=== 4. NETWORK ISOLATION ===
+petshop_frontend    internal=false
+petshop_backend     internal=true
+petshop_monitoring  internal=false
+Database co the truy cap tu host khong? (mong doi: KHONG)
+nc: connect to 127.0.0.1 port 5432 (tcp) failed: Connection refused
+
+=== 5. SECURITY HEADERS CUA NGINX ===
+HTTP/1.1 200 OK
+Server: nginx
+Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+=== 6. HTTP -> HTTPS REDIRECT ===
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.27.5
+Date: Thu, 15 Oct 2026 20:06:18 GMT
+
+=== 7. ROLE DATABASE (least privilege) ===
+                               List of roles
+   Role name   |                         Attributes                         
+---------------+------------------------------------------------------------
+ exporter      | 
+ petshop_admin | Superuser, Create role, Create DB, Replication, Bypass RLS
+ petshop_app   | 
+
+Thu DROP TABLE bang user cua app (mong doi: permission denied / must be owner):
+ERROR:  must be owner of table pets
+
+=== 8. /metrics KHONG LO RA NGOAI ===
+HTTP 404
+
+=== 9. TUONG LUA UFW ===
+Status: active
+
+To                         Action      From
+--                         ------      ----
+21/tcp                     ALLOW       Anywhere                  
+20/tcp                     ALLOW       Anywhere                  
+22/tcp                     ALLOW       Anywhere                  
+OpenSSH                    ALLOW       Anywhere                  
+80/tcp                     ALLOW       Anywhere                  
+443/tcp                    ALLOW       Anywhere                  
+21/tcp (v6)                ALLOW       Anywhere (v6)             
+20/tcp (v6)                ALLOW       Anywhere (v6)             
