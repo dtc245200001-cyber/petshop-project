@@ -1,0 +1,12 @@
+# Bí mật: KHÔNG đưa lên GitHub
+.env
+nginx/certs/*.key
+nginx/certs/*.crt
+
+# Python
+__pycache__/
+*.pyc
+
+# Khác
+*.log
+.DS_Store

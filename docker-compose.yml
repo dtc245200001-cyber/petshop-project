@@ -1,0 +1,116 @@
+name: petshop
+
+# Cấu hình bảo mật dùng chung: bỏ mọi Linux capability, cấm leo thang đặc quyền
+x-security: &security
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+
+services:
+  # ===================== DATABASE =====================
+  db:
+    <<: *security
+    mem_limit: 512m
+    image: postgres:16-alpine
+    container_name: petshop-db
+    # Postgres cần vài capability để khởi tạo thư mục dữ liệu rồi hạ quyền xuống user postgres
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      EXPORTER_DB_PASSWORD: ${EXPORTER_DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  # ===================== WEB APP =====================
+  app:
+    <<: *security
+    mem_limit: 512m
+    build: ./app
+    image: petshop-app:1.0
+    container_name: petshop-app
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME}
+      DB_USER: petshop_app
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "127.0.0.1:5000:5000"   # chỉ để debug trong VM
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - frontend
+      - backend
+      - monitoring
+
+  # ===================== PGADMIN (công cụ quản lý DB) =====================
+  # Lưu ý: pgAdmin KHÔNG dùng cap_drop: ALL (dễ lỗi loop đăng nhập),
+  # chỉ giữ no-new-privileges để vừa an toàn vừa chạy ổn định.
+  pgadmin:
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    image: dpage/pgadmin4:8
+    container_name: petshop-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: "8080"
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5050:8080"   # chỉ để debug trong VM
+    networks:
+      - frontend
+      - backend
+
+  # ===== [NGINX] =====
+  # ===== [MONITORING] =====
+  # ===== [LOGGING] =====
+
+networks:
+  frontend:
+  backend:
+    internal: true     # mạng nội bộ: không ra Internet, không publish port
+  monitoring:
+
+volumes:
+  db_data:
+  pgadmin_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  promtail_positions:

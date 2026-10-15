@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Tổng quan cửa hàng</h2>
+<div class="stats">
+  <div class="stat"><b>{{ stats.customers }}</b>Khách hàng</div>
+  <div class="stat"><b>{{ stats.pets }}</b>Thú cưng</div>
+  <div class="stat"><b>{{ stats.services }}</b>Dịch vụ</div>
+  <div class="stat"><b>{{ stats.appointments }}</b>Lịch hẹn</div>
+</div>
+<h3>Lịch hẹn sắp tới</h3>
+<table>
+  <tr><th>Thời gian</th><th>Thú cưng</th><th>Dịch vụ</th><th>Trạng thái</th></tr>
+  {% for a in upcoming %}
+  <tr><td>{{ a.appt_time }}</td><td>{{ a.pet }}</td><td>{{ a.service }}</td><td>{{ a.status }}</td></tr>
+  {% else %}
+  <tr><td colspan="4">Chưa có lịch hẹn.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
