@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: cadvisor            # CPU/RAM/network của từng container
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  - job_name: nginx               # web server
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+
+  - job_name: postgres            # database
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: petshop-app         # ứng dụng Flask
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["app:5000"]
