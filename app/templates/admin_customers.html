@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Quản lý khách hàng - Admin{% endblock %}
+{% block content %}
+<h2>Quản lý khách hàng</h2>
+<table>
+  <tr><th>ID</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Vai trò</th><th>Số thú cưng</th><th>Ngày tạo</th><th></th></tr>
+  {% for c in rows %}
+  <tr>
+    <td>{{ c.id }}</td>
+    <td>{{ c.name }}</td>
+    <td>{{ c.phone or '-' }}</td>
+    <td>{{ c.email }}{% if not c.has_account %}<br><span class="muted">(dữ liệu mẫu, chưa có mật khẩu)</span>{% endif %}</td>
+    <td>{{ c.role }}</td>
+    <td>{{ c.pet_count }}</td>
+    <td>{{ c.created }}</td>
+    <td>
+      {% if c.role == 'user' %}
+      <form class="inline" method="post" action="{{ url_for('admin_delete_customer', customer_id=c.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="danger" type="submit">Xóa</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted">⚠️ Xóa khách hàng sẽ tự động xóa thú cưng và lịch hẹn của khách đó (ON DELETE CASCADE). Không thể xóa tài khoản admin.</p>
+{% endblock %}

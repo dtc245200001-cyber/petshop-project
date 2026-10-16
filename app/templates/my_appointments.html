@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Lịch hẹn cá nhân - PetShop{% endblock %}
+{% block content %}
+<h2>Lịch hẹn cá nhân</h2>
+<table>
+  <tr><th>Thời gian</th><th>Thú cưng</th><th>Dịch vụ</th><th>Giá</th><th>Trạng thái</th><th></th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.appt_time }}</td>
+    <td>{{ r.pet }}</td>
+    <td>{{ r.service }}</td>
+    <td>{{ r.price|vnd }}</td>
+    <td><span class="badge {{ r.status|status_class }}">{{ r.status }}</span></td>
+    <td>
+      {% if r.status == pending %}
+      <form class="inline" method="post" action="{{ url_for('cancel_appointment', appt_id=r.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="danger" type="submit">Hủy lịch</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6">Bạn chưa có lịch hẹn nào. <a href="{{ url_for('booking') }}">Đặt lịch ngay</a>.</td></tr>
+  {% endfor %}
+</table>
+<p class="muted">Bạn chỉ có thể hủy lịch khi lịch đang ở trạng thái "Chờ xác nhận".</p>
+{% endblock %}

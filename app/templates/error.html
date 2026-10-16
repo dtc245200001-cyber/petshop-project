@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Lỗi {{ code }} - PetShop{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center">
+  <h1 style="font-size:56px;margin:0">{{ code }}</h1>
+  <p>{{ message }}</p>
+  {% if user and user.role == 'admin' %}
+    <a class="btn" href="{{ url_for('admin_dashboard') }}">Về trang quản trị</a>
+  {% elif user %}
+    <a class="btn" href="{{ url_for('home') }}">Về trang chủ</a>
+  {% else %}
+    <a class="btn" href="{{ url_for('login') }}">Về trang đăng nhập</a>
+  {% endif %}
+</div>
+{% endblock %}

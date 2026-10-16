@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Đăng ký - PetShop{% endblock %}
+{% block content %}
+<div class="card auth">
+  <h2>Đăng ký tài khoản khách hàng</h2>
+  <form method="post" action="{{ url_for('register') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Họ tên
+      <input type="text" name="name" required maxlength="100" value="{{ form.get('name', '') }}">
+    </label>
+    <label>Số điện thoại
+      <input type="text" name="phone" maxlength="15" value="{{ form.get('phone', '') }}">
+    </label>
+    <label>Email
+      <input type="email" name="email" required maxlength="100" value="{{ form.get('email', '') }}">
+    </label>
+    <label>Mật khẩu (tối thiểu 8 ký tự)
+      <input type="password" name="password" required minlength="8" maxlength="128">
+    </label>
+    <label>Nhập lại mật khẩu
+      <input type="password" name="confirm" required minlength="8" maxlength="128">
+    </label>
+    <button type="submit">Đăng ký</button>
+  </form>
+  <p class="muted">Đã có tài khoản? <a href="{{ url_for('login') }}">Đăng nhập</a></p>
+</div>
+{% endblock %}

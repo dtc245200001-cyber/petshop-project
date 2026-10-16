@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Thú cưng của tôi - PetShop{% endblock %}
+{% block content %}
+<h2>Thú cưng của tôi</h2>
+
+<form method="post" action="{{ url_for('my_pets') }}" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h3 style="margin-top:0">Thêm thú cưng mới</h3>
+  <div class="row">
+    <label>Tên <input type="text" name="name" required maxlength="100"></label>
+    <label>Loài
+      <select name="species" required>
+        {% for sp in species_list %}<option value="{{ sp }}">{{ sp }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Giống <input type="text" name="breed" maxlength="80"></label>
+    <label>Tuổi <input type="number" name="age" step="0.1" min="0" max="50"></label>
+  </div>
+  <button type="submit">Thêm thú cưng</button>
+</form>
+
+<table>
+  <tr><th>Tên</th><th>Loài</th><th>Giống</th><th>Tuổi</th></tr>
+  {% for p in pets %}
+  <tr><td>{{ p.name }}</td><td>{{ p.species }}</td><td>{{ p.breed or '-' }}</td><td>{{ p.age if p.age is not none else '-' }}</td></tr>
+  {% else %}
+  <tr><td colspan="4">Bạn chưa có thú cưng nào. Hãy thêm bé đầu tiên ở phía trên.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

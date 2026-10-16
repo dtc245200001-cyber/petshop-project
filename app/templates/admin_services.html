@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Quản lý dịch vụ - Admin{% endblock %}
+{% block content %}
+<h2>Quản lý dịch vụ</h2>
+
+<form method="post" action="{{ url_for('admin_services') }}" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h3 style="margin-top:0">Thêm dịch vụ mới</h3>
+  <div class="row">
+    <label>Tên dịch vụ <input type="text" name="name" required maxlength="100"></label>
+    <label>Giá (VNĐ) <input type="number" name="price" required min="0" max="100000000"></label>
+    <label>Thời lượng (phút) <input type="number" name="duration_min" required min="5" max="600" value="30"></label>
+    <label>Biểu tượng (emoji) <input type="text" name="icon" maxlength="8" placeholder="🐾"></label>
+  </div>
+  <label>Mô tả <input type="text" name="description" maxlength="300" style="max-width:none"></label>
+  <button type="submit">Thêm dịch vụ</button>
+</form>
+
+<table>
+  <tr><th></th><th>ID</th><th>Tên</th><th>Giá</th><th>Thời lượng</th><th>Mô tả</th><th></th></tr>
+  {% for s in rows %}
+  <tr>
+    <td style="font-size:24px">{{ s.icon }}</td>
+    <td>{{ s.id }}</td>
+    <td>{{ s.name }}</td>
+    <td>{{ s.price|vnd }}</td>
+    <td>{{ s.duration_min }} phút</td>
+    <td>{{ s.description or '' }}</td>
+    <td class="actions">
+      <a class="btn small" href="{{ url_for('admin_service_edit', service_id=s.id) }}">Sửa</a>
+      <form class="inline" method="post" action="{{ url_for('admin_delete_service', service_id=s.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="danger" type="submit">Xóa</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">Chưa có dịch vụ.</td></tr>
+  {% endfor %}
+</table>
+<p class="muted">⚠️ Xóa một dịch vụ sẽ xóa luôn các lịch hẹn đang dùng dịch vụ đó (ON DELETE CASCADE).</p>
+{% endblock %}

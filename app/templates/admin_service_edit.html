@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sửa dịch vụ - Admin{% endblock %}
+{% block content %}
+<h2>Sửa dịch vụ #{{ svc.id }}</h2>
+<form method="post" action="{{ url_for('admin_service_edit', service_id=svc.id) }}" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <label>Tên dịch vụ <input type="text" name="name" required maxlength="100" value="{{ svc.name }}"></label>
+    <label>Giá (VNĐ) <input type="number" name="price" required min="0" max="100000000" value="{{ svc.price|int }}"></label>
+    <label>Thời lượng (phút) <input type="number" name="duration_min" required min="5" max="600" value="{{ svc.duration_min }}"></label>
+    <label>Biểu tượng (emoji) <input type="text" name="icon" maxlength="8" value="{{ svc.icon }}"></label>
+  </div>
+  <label>Mô tả <input type="text" name="description" maxlength="300" style="max-width:none" value="{{ svc.description or '' }}"></label>
+  <button type="submit">Lưu thay đổi</button>
+  <a class="btn gray" href="{{ url_for('admin_services') }}">Quay lại</a>
+</form>
+{% endblock %}

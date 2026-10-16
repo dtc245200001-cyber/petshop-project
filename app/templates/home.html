@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ - PetShop{% endblock %}
+{% block content %}
+<div class="hero">
+  <h1>Chào mừng {{ user.name }} đến với PetShop 🐶🐱</h1>
+  <p>Chăm sóc thú cưng chuyên nghiệp: tắm spa, cắt tỉa, khám sức khỏe. Đặt lịch chỉ với vài thao tác.</p>
+</div>
+
+<h2>Dịch vụ nổi bật</h2>
+<div class="grid">
+  {% for s in services %}
+  <div class="svc">
+    <div class="pic">{{ s.icon }}</div>
+    <div class="body">
+      <strong>{{ s.name }}</strong>
+      <span class="price">{{ s.price|vnd }}</span>
+      <span class="meta">⏱ {{ s.duration_min }} phút</span>
+      <span class="meta">{{ s.description or '' }}</span>
+      <a class="btn" href="{{ url_for('booking', service_id=s.id) }}">Đặt lịch ngay</a>
+    </div>
+  </div>
+  {% else %}
+  <p>Hiện chưa có dịch vụ nào.</p>
+  {% endfor %}
+</div>
+
+<h2 style="margin-top:28px">Về cửa hàng &amp; ưu đãi</h2>
+<div class="card">
+  <p><strong>PetShop</strong> là cửa hàng chăm sóc thú cưng với đội ngũ giàu kinh nghiệm, trang thiết bị sạch sẽ và an toàn cho các bé.</p>
+  <ul>
+    <li>🎁 Giảm 10% cho lần spa đầu tiên của khách hàng mới.</li>
+    <li>🎀 Combo tắm + cắt tỉa lông: tiết kiệm đến 15%.</li>
+    <li>🩺 Nhắc lịch khám sức khỏe định kỳ cho thú cưng.</li>
+  </ul>
+  <p class="muted">(Nội dung ưu đãi mang tính minh họa cho đồ án.)</p>
+</div>
+{% endblock %}

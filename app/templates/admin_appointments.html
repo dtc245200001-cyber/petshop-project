@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Quản lý lịch hẹn - Admin{% endblock %}
+{% block content %}
+<h2>Quản lý lịch hẹn</h2>
+<p class="filters">
+  Lọc:
+  <a href="{{ url_for('admin_appointments') }}"><strong>{% if not current %}[Tất cả]{% else %}Tất cả{% endif %}</strong></a>
+  {% for s in statuses %}
+    <a href="{{ url_for('admin_appointments', status=s) }}">{% if current == s %}<strong>[{{ s }}]</strong>{% else %}{{ s }}{% endif %}</a>
+  {% endfor %}
+</p>
+<table>
+  <tr><th>ID</th><th>Thời gian</th><th>Khách hàng</th><th>Thú cưng</th><th>Dịch vụ</th><th>Giá</th><th>Trạng thái</th><th>Cập nhật</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.id }}</td>
+    <td>{{ r.appt_time }}</td>
+    <td>{{ r.owner }}<br><span class="muted">{{ r.phone or '' }}</span></td>
+    <td>{{ r.pet }}</td>
+    <td>{{ r.service }}</td>
+    <td>{{ r.price|vnd }}</td>
+    <td><span class="badge {{ r.status|status_class }}">{{ r.status }}</span></td>
+    <td>
+      <div class="actions">
+        <form class="inline actions" method="post" action="{{ url_for('admin_update_status', appt_id=r.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="status">
+            {% for s in statuses %}<option value="{{ s }}" {% if s == r.status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+          <button class="small" type="submit">Lưu</button>
+        </form>
+        <form class="inline" method="post" action="{{ url_for('admin_delete_appointment', appt_id=r.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="danger" type="submit">Xóa</button>
+        </form>
+      </div>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="8">Không có lịch hẹn.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

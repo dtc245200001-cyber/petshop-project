@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Quản lý thú cưng - Admin{% endblock %}
+{% block content %}
+<h2>Quản lý thú cưng</h2>
+<table>
+  <tr><th>ID</th><th>Tên</th><th>Loài</th><th>Giống</th><th>Tuổi</th><th>Chủ nuôi</th><th></th></tr>
+  {% for p in rows %}
+  <tr>
+    <td>{{ p.id }}</td><td>{{ p.name }}</td><td>{{ p.species }}</td><td>{{ p.breed or '-' }}</td>
+    <td>{{ p.age if p.age is not none else '-' }}</td><td>{{ p.owner }}</td>
+    <td>
+      <form class="inline" method="post" action="{{ url_for('admin_delete_pet', pet_id=p.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="danger" type="submit">Xóa</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">Chưa có thú cưng.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

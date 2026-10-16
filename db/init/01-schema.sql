@@ -1,9 +1,12 @@
 CREATE TABLE customers (
-    id         SERIAL PRIMARY KEY,
-    name       VARCHAR(100) NOT NULL,
-    phone      VARCHAR(20),
-    email      VARCHAR(100),
-    created_at TIMESTAMP DEFAULT now()
+    id            SERIAL PRIMARY KEY,
+    name          VARCHAR(100) NOT NULL,
+    phone         VARCHAR(20),
+    email         VARCHAR(100) NOT NULL UNIQUE,                       -- [MỚI] tên đăng nhập
+    password_hash TEXT,                                               -- [MỚI] mật khẩu đã băm (scrypt)
+    role          VARCHAR(10) NOT NULL DEFAULT 'user'                 -- [MỚI] phân quyền
+                  CHECK (role IN ('user', 'admin')),
+    created_at    TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE pets (
@@ -19,7 +22,9 @@ CREATE TABLE services (
     id           SERIAL PRIMARY KEY,
     name         VARCHAR(100) NOT NULL,
     price        NUMERIC(10,0) NOT NULL,
-    duration_min INT NOT NULL DEFAULT 30
+    duration_min INT NOT NULL DEFAULT 30,
+    description  TEXT,                                                -- [MỚI] mô tả hiển thị trên thẻ dịch vụ
+    icon         VARCHAR(8) NOT NULL DEFAULT '🐾'                     -- [MỚI] emoji minh họa
 );
 
 CREATE TABLE appointments (
@@ -29,6 +34,11 @@ CREATE TABLE appointments (
     appt_time  TIMESTAMP NOT NULL,
     status     VARCHAR(30) NOT NULL DEFAULT 'Chờ xác nhận'
 );
+
+-- [MỚI] Index phục vụ các truy vấn theo chủ sở hữu và trạng thái
+CREATE INDEX idx_pets_customer  ON pets(customer_id);
+CREATE INDEX idx_appt_pet       ON appointments(pet_id);
+CREATE INDEX idx_appt_status    ON appointments(status);
 
 INSERT INTO customers (name, phone, email) VALUES
  ('Nguyễn Văn An',  '0901234567', 'an@example.com'),
@@ -41,11 +51,11 @@ INSERT INTO pets (name, species, breed, age, customer_id) VALUES
  ('Bông',  'Chó', 'Corgi',    1.5, 2),
  ('Lu',    'Mèo', 'Ba Tư',    4.0, 3);
 
-INSERT INTO services (name, price, duration_min) VALUES
- ('Tắm spa cơ bản',      150000, 45),
- ('Cắt tỉa lông',        200000, 60),
- ('Spa cao cấp',         350000, 90),
- ('Khám sức khỏe tổng quát', 250000, 30);
+INSERT INTO services (name, price, duration_min, description, icon) VALUES
+ ('Tắm spa cơ bản',          150000, 45, 'Tắm, sấy khô, vệ sinh tai và cắt móng cho bé.',            '🛁'),
+ ('Cắt tỉa lông',            200000, 60, 'Cắt tỉa tạo kiểu theo giống, phù hợp từng bé.',             '✂️'),
+ ('Spa cao cấp',             350000, 90, 'Tắm dưỡng lông, massage thư giãn, chăm sóc toàn diện.',     '💆'),
+ ('Khám sức khỏe tổng quát', 250000, 30, 'Bác sĩ thú y kiểm tra tổng quát và tư vấn dinh dưỡng.',      '🩺');
 
 INSERT INTO appointments (pet_id, service_id, appt_time, status) VALUES
  (1, 1, now() + interval '1 day',  'Đã xác nhận'),

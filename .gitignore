@@ -1,4 +1,3 @@
-# Bí mật: KHÔNG đưa lên GitHub
 .env
 nginx/certs/*.key
 nginx/certs/*.crt

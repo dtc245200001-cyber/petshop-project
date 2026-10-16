@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Tổng quan - Admin{% endblock %}
+{% block content %}
+<h2>Tổng quan cửa hàng</h2>
+<div class="stats">
+  <div class="stat"><b>{{ stats.customers }}</b>Khách hàng</div>
+  <div class="stat"><b>{{ stats.pets }}</b>Thú cưng</div>
+  <div class="stat"><b>{{ stats.services }}</b>Dịch vụ</div>
+  <div class="stat"><b>{{ stats.appointments }}</b>Lịch hẹn</div>
+  <div class="stat"><b>{{ stats.pending }}</b>Chờ xác nhận</div>
+</div>
+<div class="stats">
+  <div class="stat money"><b>{{ stats.revenue_done|vnd }}</b>Doanh thu (lịch đã hoàn thành)</div>
+  <div class="stat money"><b>{{ stats.revenue_expected|vnd }}</b>Doanh thu dự kiến (chờ + đã xác nhận)</div>
+</div>
+
+<h3>Lịch hẹn cần xử lý</h3>
+<table>
+  <tr><th>Thời gian</th><th>Khách hàng</th><th>Thú cưng</th><th>Dịch vụ</th><th>Thao tác nhanh</th></tr>
+  {% for a in pending %}
+  <tr>
+    <td>{{ a.appt_time }}</td><td>{{ a.owner }}</td><td>{{ a.pet }}</td><td>{{ a.service }}</td>
+    <td class="actions">
+      <form class="inline" method="post" action="{{ url_for('admin_update_status', appt_id=a.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="dashboard">
+        <input type="hidden" name="status" value="Đã xác nhận">
+        <button class="small" type="submit">Duyệt</button>
+      </form>
+      <form class="inline" method="post" action="{{ url_for('admin_update_status', appt_id=a.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="dashboard">
+        <input type="hidden" name="status" value="Đã hủy">
+        <button class="danger" type="submit">Hủy</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">Không có lịch hẹn nào đang chờ xác nhận. 🎉</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

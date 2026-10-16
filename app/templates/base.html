@@ -3,36 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PetShop Manager</title>
+  <title>{% block title %}PetShop Manager{% endblock %}</title>
   <style>
+    *{box-sizing:border-box}
     body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
-    header{background:#2f6f5e;padding:14px 24px}
-    header a{color:#fff;margin-right:18px;text-decoration:none;font-weight:600}
-    header a:hover{text-decoration:underline}
-    main{max-width:1000px;margin:24px auto;padding:0 16px}
+    header{background:#2f6f5e}
+    header.admin{background:#2b3a55}
+    .bar{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+    .bar a,.linkbtn{color:#fff;text-decoration:none;font-weight:600;background:none;border:0;padding:0;font:inherit;font-weight:600;cursor:pointer}
+    .bar a:hover,.linkbtn:hover{text-decoration:underline}
+    .brand{color:#fff;font-weight:800;font-size:18px}
+    .hello{color:#d8efe7;margin-left:auto}
+    .spacer{margin-left:auto}
+    form.inline{display:inline;margin:0}
+    main{max-width:1100px;margin:24px auto;padding:0 16px}
     .card{background:#fff;border-radius:8px;padding:16px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .stats{display:flex;gap:16px;flex-wrap:wrap}
-    .stat{flex:1;min-width:160px;background:#fff;border-radius:8px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .stat b{display:block;font-size:32px;color:#2f6f5e}
+    .auth{max-width:420px;margin:40px auto}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+    .svc{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;flex-direction:column}
+    .svc .pic{background:linear-gradient(135deg,#cfe9e0,#e9f2ef);font-size:56px;text-align:center;padding:18px 0}
+    .svc .body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+    .svc .price{color:#2f6f5e;font-weight:700;font-size:18px}
+    .svc .meta{color:#666;font-size:14px}
+    .hero{background:linear-gradient(135deg,#2f6f5e,#4b9a84);color:#fff;border-radius:10px;padding:28px;margin-bottom:20px}
+    .hero h1{margin:0 0 6px}
+    .stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+    .stat{flex:1;min-width:150px;background:#fff;border-radius:8px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .stat b{display:block;font-size:28px;color:#2f6f5e}
+    .stat.money b{font-size:22px;color:#2b3a55}
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}
-    th,td{padding:10px 12px;border-bottom:1px solid #e5e8eb;text-align:left}
+    th,td{padding:10px 12px;border-bottom:1px solid #e5e8eb;text-align:left;vertical-align:middle}
     th{background:#e9f2ef}
-    form.inline{display:inline}
-    label{display:inline-block;margin:4px 12px 8px 0;font-size:14px}
-    input,select{padding:6px 8px;border:1px solid #bbb;border-radius:4px;display:block;margin-top:4px}
-    button{background:#2f6f5e;color:#fff;border:0;padding:8px 14px;border-radius:4px;cursor:pointer}
-    button.danger{background:#b3402f;padding:4px 10px}
+    label{display:block;margin:8px 0;font-size:14px}
+    input,select,textarea{padding:8px;border:1px solid #bbb;border-radius:4px;display:block;margin-top:4px;width:100%;max-width:420px;font:inherit}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row label{flex:1;min-width:150px}
+    .row input,.row select{max-width:none}
+    button,.btn{background:#2f6f5e;color:#fff;border:0;padding:8px 14px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block;font:inherit}
+    button.danger,.btn.danger{background:#b3402f;padding:5px 10px}
+    button.small,.btn.small{padding:5px 10px;font-size:14px}
+    button.gray,.btn.gray{background:#667}
+    .badge{padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
+    .badge.warn{background:#fff3cd;color:#8a6d00}
+    .badge.info{background:#d9ecff;color:#1b5a99}
+    .badge.ok{background:#d6f0dc;color:#1c6b32}
+    .badge.bad{background:#f8d7d3;color:#9b2c20}
+    .flash{padding:10px 14px;border-radius:6px;margin-bottom:12px}
+    .flash.success{background:#d6f0dc;color:#1c6b32}
+    .flash.error{background:#f8d7d3;color:#9b2c20}
+    .flash.info{background:#d9ecff;color:#1b5a99}
+    .muted{color:#777;font-size:14px}
+    .filters a{margin-right:10px}
+    .actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .actions select{width:auto;margin:0}
   </style>
 </head>
 <body>
-  <header>
-    <a href="{{ url_for('index') }}">PetShop</a>
-    <a href="{{ url_for('entity_page', entity='customers') }}">Khách hàng</a>
-    <a href="{{ url_for('entity_page', entity='pets') }}">Thú cưng</a>
-    <a href="{{ url_for('entity_page', entity='services') }}">Dịch vụ spa</a>
-    <a href="{{ url_for('entity_page', entity='appointments') }}">Lịch hẹn</a>
+  <header class="{% if user and user.role == 'admin' %}admin{% endif %}">
+    <div class="bar">
+      {% if user and user.role == 'admin' %}
+        <span class="brand">🐾 PetShop Admin</span>
+        <a href="{{ url_for('admin_dashboard') }}">Tổng quan</a>
+        <a href="{{ url_for('admin_appointments') }}">Quản lý Lịch hẹn</a>
+        <a href="{{ url_for('admin_customers') }}">Quản lý Khách hàng</a>
+        <a href="{{ url_for('admin_pets') }}">Quản lý Thú cưng</a>
+        <a href="{{ url_for('admin_services') }}">Quản lý Dịch vụ</a>
+        <form class="inline spacer" method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="linkbtn" type="submit">Đăng xuất</button>
+        </form>
+      {% elif user %}
+        <span class="brand">🐾 PetShop</span>
+        <a href="{{ url_for('home') }}">Trang chủ</a>
+        <a href="{{ url_for('my_pets') }}">Thú cưng của tôi</a>
+        <a href="{{ url_for('booking') }}">Đặt lịch dịch vụ</a>
+        <a href="{{ url_for('my_appointments') }}">Lịch hẹn cá nhân</a>
+        <span class="hello">Xin chào, {{ user.name }}</span>
+        <form class="inline" method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="linkbtn" type="submit">Đăng xuất</button>
+        </form>
+      {% else %}
+        <span class="brand">🐾 PetShop</span>
+        <a href="{{ url_for('login') }}">Đăng nhập</a>
+        <a href="{{ url_for('register') }}">Đăng ký</a>
+      {% endif %}
+    </div>
   </header>
   <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
 </body>
