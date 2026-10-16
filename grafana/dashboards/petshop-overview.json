@@ -22,6 +22,9 @@
     { "id": 9, "type": "timeseries", "title": "Flask app - request/giây theo mã trạng thái", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 }, "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }, "targets": [ { "expr": "sum by (status) (rate(flask_http_request_total[1m]))", "legendFormat": "HTTP {{status}}", "refId": "A" } ] },
     { "id": 10, "type": "timeseries", "title": "PostgreSQL - kết nối theo trạng thái", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 }, "targets": [ { "expr": "sum by (state) (pg_stat_activity_count)", "legendFormat": "{{state}}", "refId": "A" } ] },
 
-    { "id": 11, "type": "timeseries", "title": "PostgreSQL - dung lượng database", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }, "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] }, "targets": [ { "expr": "pg_database_size_bytes{datname=\"petshopdb\"}", "legendFormat": "{{datname}}", "refId": "A" } ] }
+    { "id": 11, "type": "timeseries", "title": "PostgreSQL - dung lượng database", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 }, "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] }, "targets": [ { "expr": "pg_database_size_bytes{datname=\"petshopdb\"}", "legendFormat": "{{datname}}", "refId": "A" } ] },
+
+    { "id": 12, "type": "timeseries", "title": "[MỚI] Đăng nhập theo kết quả (tăng trong 5 phút)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 }, "targets": [ { "expr": "sum by (result) (increase(petshop_login_attempts_total[5m]))", "legendFormat": "{{result}}", "refId": "A" } ] },
+    { "id": 13, "type": "stat", "title": "[MỚI] Lịch hẹn đã đặt qua website", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 }, "targets": [ { "expr": "sum(petshop_bookings_total)", "refId": "A" } ] }
   ]
 }
