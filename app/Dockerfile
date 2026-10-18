@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 COPY templates ./templates
+# CSS, JavaScript, icon và ảnh dịch vụ (service_<id>.jpg). Lưu ý: Dockerfile KHÔNG cho phép
+# chú thích cuối dòng lệnh, nên chú thích phải nằm trên dòng riêng như thế này.
 COPY static ./static
 
 USER appuser
