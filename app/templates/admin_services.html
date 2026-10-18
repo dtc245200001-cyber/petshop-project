@@ -1,42 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Quản lý dịch vụ - Admin{% endblock %}
+{% from "_macros.html" import icon, csrf, empty, errors_box with context %}
+{% block title %}Quản lý dịch vụ{% endblock %}
 {% block content %}
-<h2>Quản lý dịch vụ</h2>
+<div class="page-head">
+  <div><h1>Dịch vụ</h1><p class="page-head__desc">Thêm, chỉnh sửa giá và mô tả dịch vụ. Khách hàng thấy thay đổi ngay.</p></div>
+  <div class="page-head__actions"><button class="btn" type="button" data-open-dialog="service-dialog">{{ icon('plus') }}Thêm dịch vụ</button></div>
+</div>
 
-<form method="post" action="{{ url_for('admin_services') }}" class="card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h3 style="margin-top:0">Thêm dịch vụ mới</h3>
-  <div class="row">
-    <label>Tên dịch vụ <input type="text" name="name" required maxlength="100"></label>
-    <label>Giá (VNĐ) <input type="number" name="price" required min="0" max="100000000"></label>
-    <label>Thời lượng (phút) <input type="number" name="duration_min" required min="5" max="600" value="30"></label>
-    <label>Biểu tượng (emoji) <input type="text" name="icon" maxlength="8" placeholder="🐾"></label>
-  </div>
-  <label>Mô tả <input type="text" name="description" maxlength="300" style="max-width:none"></label>
-  <button type="submit">Thêm dịch vụ</button>
-</form>
-
-<table>
-  <tr><th></th><th>ID</th><th>Tên</th><th>Giá</th><th>Thời lượng</th><th>Mô tả</th><th></th></tr>
+{% if rows %}
+<div class="cards-grid">
   {% for s in rows %}
-  <tr>
-    <td style="font-size:24px">{{ s.icon }}</td>
-    <td>{{ s.id }}</td>
-    <td>{{ s.name }}</td>
-    <td>{{ s.price|vnd }}</td>
-    <td>{{ s.duration_min }} phút</td>
-    <td>{{ s.description or '' }}</td>
-    <td class="actions">
-      <a class="btn small" href="{{ url_for('admin_service_edit', service_id=s.id) }}">Sửa</a>
-      <form class="inline" method="post" action="{{ url_for('admin_delete_service', service_id=s.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="danger" type="submit">Xóa</button>
-      </form>
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="7">Chưa có dịch vụ.</td></tr>
+  <article class="svc-card">
+    <div class="svc-card__pic" aria-hidden="true"><span>{{ s.icon or '🐾' }}</span></div>
+    <div class="svc-card__body">
+      <h2 class="svc-card__name">{{ s.name }}</h2>
+      <div class="svc-card__meta">{{ icon('clock', 'icon--sm') }}{{ s.duration_min }} phút</div>
+      <p class="svc-card__desc muted">{{ s.description or 'Chưa có mô tả.' }}</p>
+      <div class="svc-card__price">{{ s.price|vnd }}</div>
+      <div class="actions">
+        <a class="btn btn--secondary btn--sm" href="{{ url_for('admin_service_edit', service_id=s.id) }}">{{ icon('edit', 'icon--sm') }}Sửa</a>
+        <form class="inline-form" method="post" action="{{ url_for('admin_delete_service', service_id=s.id) }}">{{ csrf() }}
+          <button class="btn btn--danger-soft btn--sm" type="submit" data-confirm="Dịch vụ «{{ s.name }}» và mọi lịch hẹn đang dùng dịch vụ này sẽ bị xóa vĩnh viễn." data-confirm-title="Xóa dịch vụ?" data-confirm-label="Xóa dịch vụ" data-no-loading>{{ icon('trash', 'icon--sm') }}Xóa</button></form>
+      </div>
+    </div>
+  </article>
   {% endfor %}
-</table>
-<p class="muted">⚠️ Xóa một dịch vụ sẽ xóa luôn các lịch hẹn đang dùng dịch vụ đó (ON DELETE CASCADE).</p>
+</div>
+{% else %}
+  {% call empty('Chưa có dịch vụ nào', 'Thêm dịch vụ đầu tiên để khách hàng có thể đặt lịch.') %}
+  <button class="btn" type="button" data-open-dialog="service-dialog">{{ icon('plus') }}Thêm dịch vụ</button>
+  {% endcall %}
+{% endif %}
+{% endblock %}
+
+{% block dialogs %}
+<dialog class="dialog" id="service-dialog" aria-labelledby="service-dialog-title"{% if errors %} data-autoopen{% endif %}>
+  <form method="post" action="{{ url_for('admin_services') }}">
+    {{ csrf() }}
+    <div class="dialog__head"><div><h2 id="service-dialog-title">Thêm dịch vụ</h2><p>Thông tin hiển thị cho khách hàng.</p></div>
+      <button class="btn btn--ghost btn--icon" type="button" data-close-dialog aria-label="Đóng">{{ icon('x') }}</button></div>
+    <div class="dialog__body">
+      {{ errors_box(errors) }}
+      <div class="form-grid">
+        <div class="field span-2"><label class="field__label" for="sv-name">Tên dịch vụ</label>
+          <input class="input" id="sv-name" name="name" value="{{ form.get('name', '') }}" maxlength="100" required></div>
+        <div class="field"><label class="field__label" for="sv-price">Giá (VNĐ)</label>
+          <input class="input" id="sv-price" name="price" type="number" min="0" max="100000000" value="{{ form.get('price', '') }}" required></div>
+        <div class="field"><label class="field__label" for="sv-duration">Thời lượng (phút)</label>
+          <input class="input" id="sv-duration" name="duration_min" type="number" min="5" max="600" value="{{ form.get('duration_min', '60') }}" required></div>
+        <div class="field"><label class="field__label" for="sv-icon">Biểu tượng (emoji)</label>
+          <input class="input" id="sv-icon" name="icon" value="{{ form.get('icon', '🐾') }}" maxlength="8"></div>
+        <div class="field span-2"><label class="field__label" for="sv-desc">Mô tả</label>
+          <textarea class="textarea input" id="sv-desc" name="description" rows="3" maxlength="300">{{ form.get('description', '') }}</textarea></div>
+      </div>
+    </div>
+    <div class="dialog__foot">
+      <button class="btn btn--secondary" type="button" data-close-dialog>Hủy</button>
+      <button class="btn" type="submit"><span class="btn__label">Lưu dịch vụ</span></button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}

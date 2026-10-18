@@ -1,22 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Quản lý thú cưng - Admin{% endblock %}
+{% from "_macros.html" import icon, csrf, pet_av, empty, pager with context %}
+{% block title %}Quản lý thú cưng{% endblock %}
 {% block content %}
-<h2>Quản lý thú cưng</h2>
-<table>
-  <tr><th>ID</th><th>Tên</th><th>Loài</th><th>Giống</th><th>Tuổi</th><th>Chủ nuôi</th><th></th></tr>
-  {% for p in rows %}
-  <tr>
-    <td>{{ p.id }}</td><td>{{ p.name }}</td><td>{{ p.species }}</td><td>{{ p.breed or '-' }}</td>
-    <td>{{ p.age if p.age is not none else '-' }}</td><td>{{ p.owner }}</td>
-    <td>
-      <form class="inline" method="post" action="{{ url_for('admin_delete_pet', pet_id=p.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="danger" type="submit">Xóa</button>
-      </form>
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="7">Chưa có thú cưng.</td></tr>
-  {% endfor %}
-</table>
+<div class="page-head">
+  <div><h1>Thú cưng</h1><p class="page-head__desc">Tất cả thú cưng đã đăng ký trong hệ thống.</p></div>
+  <form class="searchbar" method="get" action="{{ url_for('admin_pets') }}" role="search" data-no-loading>
+    <div class="input-icon">{{ icon('search') }}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Tên, giống, chủ nuôi…" aria-label="Tìm thú cưng" maxlength="60"></div>
+    <button class="btn btn--secondary" type="submit">Tìm</button>
+  </form>
+</div>
+
+{% if rows %}
+<div class="table-wrap">
+  <div class="table-scroll">
+  <table class="table table--stack">
+    <thead><tr><th>Thú cưng</th><th>Loài</th><th>Giống</th><th class="num">Tuổi</th><th>Chủ nuôi</th><th>Thao tác</th></tr></thead>
+    <tbody>
+      {% for p in rows %}
+      <tr>
+        <td class="cell-title"><div class="cell-main">{{ pet_av(p.species, 'sm') }}<div><strong>{{ p.name }}</strong><span>#{{ p.id }}</span></div></div></td>
+        <td data-label="Loài">{{ p.species }}</td>
+        <td data-label="Giống">{{ p.breed or '—' }}</td>
+        <td data-label="Tuổi" class="num">{% if p.age is not none %}{{ '%g'|format(p.age|float) }}{% else %}—{% endif %}</td>
+        <td data-label="Chủ nuôi">{{ p.owner }}</td>
+        <td class="cell-actions">
+          <form class="inline-form" method="post" action="{{ url_for('admin_delete_pet', pet_id=p.id) }}">{{ csrf() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+            <button class="btn btn--danger-soft btn--sm" type="submit" data-confirm="Thú cưng «{{ p.name }}» và các lịch hẹn của bé sẽ bị xóa vĩnh viễn." data-confirm-title="Xóa thú cưng?" data-confirm-label="Xóa" data-no-loading>{{ icon('trash', 'icon--sm') }}Xóa</button></form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {{ pager(pg) }}
+</div>
+{% else %}
+  {% call empty('Không tìm thấy thú cưng', 'Thử từ khóa khác hoặc chờ khách hàng thêm thú cưng.') %}{% if q %}<a class="btn btn--secondary" href="{{ url_for('admin_pets') }}">Xóa bộ lọc</a>{% endif %}{% endcall %}
+{% endif %}
 {% endblock %}

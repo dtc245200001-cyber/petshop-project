@@ -1,28 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Quản lý khách hàng - Admin{% endblock %}
+{% from "_macros.html" import icon, csrf, empty, pager with context %}
+{% block title %}Quản lý khách hàng{% endblock %}
 {% block content %}
-<h2>Quản lý khách hàng</h2>
-<table>
-  <tr><th>ID</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Vai trò</th><th>Số thú cưng</th><th>Ngày tạo</th><th></th></tr>
-  {% for c in rows %}
-  <tr>
-    <td>{{ c.id }}</td>
-    <td>{{ c.name }}</td>
-    <td>{{ c.phone or '-' }}</td>
-    <td>{{ c.email }}{% if not c.has_account %}<br><span class="muted">(dữ liệu mẫu, chưa có mật khẩu)</span>{% endif %}</td>
-    <td>{{ c.role }}</td>
-    <td>{{ c.pet_count }}</td>
-    <td>{{ c.created }}</td>
-    <td>
-      {% if c.role == 'user' %}
-      <form class="inline" method="post" action="{{ url_for('admin_delete_customer', customer_id=c.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="danger" type="submit">Xóa</button>
-      </form>
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-<p class="muted">⚠️ Xóa khách hàng sẽ tự động xóa thú cưng và lịch hẹn của khách đó (ON DELETE CASCADE). Không thể xóa tài khoản admin.</p>
+<div class="page-head">
+  <div><h1>Khách hàng</h1><p class="page-head__desc">Danh sách tài khoản và số thú cưng của từng khách.</p></div>
+  <form class="searchbar" method="get" action="{{ url_for('admin_customers') }}" role="search" data-no-loading>
+    <div class="input-icon">{{ icon('search') }}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Tên, email, số điện thoại…" aria-label="Tìm khách hàng" maxlength="60"></div>
+    <button class="btn btn--secondary" type="submit">Tìm</button>
+  </form>
+</div>
+
+{% if rows %}
+<div class="table-wrap">
+  <div class="table-scroll">
+  <table class="table table--stack">
+    <thead><tr><th>Khách hàng</th><th>Điện thoại</th><th>Vai trò</th><th class="num">Thú cưng</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
+    <tbody>
+      {% for c in rows %}
+      <tr>
+        <td class="cell-title"><div class="cell-main"><span class="avatar">{{ c.name|initials }}</span><div><strong>{{ c.name }}</strong><span>{{ c.email }}</span></div></div></td>
+        <td data-label="Điện thoại">{{ c.phone or '—' }}</td>
+        <td data-label="Vai trò">{% if c.role == 'admin' %}<span class="badge badge--info">{{ icon('shield') }}Quản trị</span>{% else %}<span class="badge badge--neutral">Khách hàng</span>{% endif %}</td>
+        <td data-label="Thú cưng" class="num">{{ c.pet_count }}</td>
+        <td data-label="Ngày tạo" class="nowrap">{{ c.created }}</td>
+        <td class="cell-actions">
+          {% if c.role != 'admin' %}
+          <form class="inline-form" method="post" action="{{ url_for('admin_delete_customer', customer_id=c.id) }}">{{ csrf() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+            <button class="btn btn--danger-soft btn--sm" type="submit" data-confirm="Khách «{{ c.name }}» cùng {{ c.pet_count }} thú cưng và mọi lịch hẹn liên quan sẽ bị xóa vĩnh viễn." data-confirm-title="Xóa khách hàng?" data-confirm-label="Xóa khách hàng" data-no-loading>{{ icon('trash', 'icon--sm') }}Xóa</button></form>
+          {% else %}<span class="muted small">Không thể xóa</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {{ pager(pg) }}
+</div>
+{% else %}
+  {% call empty('Không tìm thấy khách hàng', 'Thử từ khóa khác.') %}{% if q %}<a class="btn btn--secondary" href="{{ url_for('admin_customers') }}">Xóa bộ lọc</a>{% endif %}{% endcall %}
+{% endif %}
 {% endblock %}

@@ -1,43 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Quản lý lịch hẹn - Admin{% endblock %}
+{% from "_macros.html" import icon, csrf, pet_av, badge, empty, pager with context %}
+{# Nút đổi trạng thái nhanh (một form nhỏ cho mỗi nút) #}
+{% macro _act(r, status, label, ic, kind) -%}
+<form class="inline-form" method="post" action="{{ url_for('admin_update_status', appt_id=r.id) }}">{{ csrf() }}
+  <input type="hidden" name="status" value="{{ status }}"><input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+  <button class="btn btn--sm{% if kind == 'danger' %} btn--danger-soft{% elif kind == 'secondary' %} btn--secondary{% endif %}" type="submit" data-no-loading>{{ icon(ic, 'icon--sm') }}{{ label }}</button>
+</form>
+{%- endmacro %}
+{% block title %}Quản lý lịch hẹn{% endblock %}
 {% block content %}
-<h2>Quản lý lịch hẹn</h2>
-<p class="filters">
-  Lọc:
-  <a href="{{ url_for('admin_appointments') }}"><strong>{% if not current %}[Tất cả]{% else %}Tất cả{% endif %}</strong></a>
-  {% for s in statuses %}
-    <a href="{{ url_for('admin_appointments', status=s) }}">{% if current == s %}<strong>[{{ s }}]</strong>{% else %}{{ s }}{% endif %}</a>
+<div class="page-head"><div><h1>Lịch hẹn</h1><p class="page-head__desc">Xác nhận, hoàn thành hoặc hủy lịch của khách.</p></div></div>
+
+<nav class="filter-tabs" aria-label="Lọc theo trạng thái">
+  <a class="filter-tab" href="{{ url_for('admin_appointments') }}"{% if not current %} aria-current="true"{% endif %}>Tất cả <small>{{ total_all }}</small></a>
+  {% for st in statuses %}
+  <a class="filter-tab" href="{{ url_for('admin_appointments', status=st) }}"{% if current == st %} aria-current="true"{% endif %}>{{ st }} <small>{{ counts.get(st, 0) }}</small></a>
   {% endfor %}
-</p>
-<table>
-  <tr><th>ID</th><th>Thời gian</th><th>Khách hàng</th><th>Thú cưng</th><th>Dịch vụ</th><th>Giá</th><th>Trạng thái</th><th>Cập nhật</th></tr>
-  {% for r in rows %}
-  <tr>
-    <td>{{ r.id }}</td>
-    <td>{{ r.appt_time }}</td>
-    <td>{{ r.owner }}<br><span class="muted">{{ r.phone or '' }}</span></td>
-    <td>{{ r.pet }}</td>
-    <td>{{ r.service }}</td>
-    <td>{{ r.price|vnd }}</td>
-    <td><span class="badge {{ r.status|status_class }}">{{ r.status }}</span></td>
-    <td>
-      <div class="actions">
-        <form class="inline actions" method="post" action="{{ url_for('admin_update_status', appt_id=r.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <select name="status">
-            {% for s in statuses %}<option value="{{ s }}" {% if s == r.status %}selected{% endif %}>{{ s }}</option>{% endfor %}
-          </select>
-          <button class="small" type="submit">Lưu</button>
-        </form>
-        <form class="inline" method="post" action="{{ url_for('admin_delete_appointment', appt_id=r.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="danger" type="submit">Xóa</button>
-        </form>
-      </div>
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="8">Không có lịch hẹn.</td></tr>
-  {% endfor %}
-</table>
+</nav>
+
+{% if rows %}
+<div class="table-wrap">
+  <div class="table-scroll">
+  <table class="table table--stack">
+    <thead><tr><th>Thú cưng / Chủ</th><th>Dịch vụ</th><th>Thời gian</th><th class="num">Giá</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="cell-title"><div class="cell-main">{{ pet_av(r.species, 'sm') }}<div><strong>{{ r.pet }}</strong><span>{{ r.owner }}{% if r.phone %} · {{ r.phone }}{% endif %}</span></div></div></td>
+        <td data-label="Dịch vụ">{{ r.service }}</td>
+        <td data-label="Thời gian" class="nowrap">{{ r.appt_time }}</td>
+        <td data-label="Giá" class="num">{{ r.price|vnd }}</td>
+        <td data-label="Trạng thái">{{ badge(r.status) }}</td>
+        <td class="cell-actions"><div class="actions">
+          {% if r.status == s_pending %}
+            {{ _act(r, s_confirmed, 'Xác nhận', 'check', '') }}
+            {{ _act(r, s_cancelled, 'Từ chối', 'x', 'danger') }}
+          {% elif r.status == s_confirmed %}
+            {{ _act(r, s_done, 'Hoàn thành', 'check-circle', '') }}
+            {{ _act(r, s_cancelled, 'Hủy', 'x', 'danger') }}
+          {% else %}
+            {{ _act(r, s_pending, 'Mở lại', 'clock', 'secondary') }}
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('admin_delete_appointment', appt_id=r.id) }}">{{ csrf() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+            <button class="btn btn--ghost btn--sm btn--icon" type="submit" aria-label="Xóa lịch #{{ r.id }}" data-confirm="Lịch hẹn của {{ r.pet }} ({{ r.service }}) sẽ bị xóa vĩnh viễn." data-confirm-title="Xóa lịch hẹn?" data-confirm-label="Xóa" data-no-loading>{{ icon('trash', 'icon--sm') }}</button></form>
+        </div></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {{ pager(pg) }}
+</div>
+{% else %}
+  {% call empty('Không có lịch hẹn', 'Chưa có lịch nào ở trạng thái này.') %}{% endcall %}
+{% endif %}
 {% endblock %}

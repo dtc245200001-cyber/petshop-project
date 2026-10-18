@@ -1,0 +1,57 @@
+{# Macro dùng chung. Import: {% from "_macros.html" import icon, badge ... with context %} #}
+{% macro icon(name, cls='') -%}
+<svg class="icon {{ cls }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{%- endmacro %}
+
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro pet_av(species, size='') -%}
+{% set k = species|species_key %}
+<span class="pet-av pet-av--{{ k }}{% if size %} pet-av--{{ size }}{% endif %}" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><use href="#pet-{{ k }}"></use></svg></span>
+{%- endmacro %}
+
+{% macro badge(status) -%}
+{% set c = status|status_class %}
+<span class="badge badge--{{ c }}">{{ icon({'warn': 'clock', 'info': 'check', 'ok': 'check-circle', 'bad': 'x-circle'}[c]) }}{{ status }}</span>
+{%- endmacro %}
+
+{% macro empty(title, text) -%}
+<div class="empty">
+  <svg class="empty__art" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#art-empty"></use></svg>
+  <h3>{{ title }}</h3>
+  <p>{{ text }}</p>
+  {% if caller %}{{ caller() }}{% endif %}
+</div>
+{%- endmacro %}
+
+{# Danh sách lỗi hiển thị bên trong hộp thoại / form #}
+{% macro errors_box(errors) -%}
+{% if errors %}
+<div class="alert alert--bad" role="alert">{{ icon('alert') }}<ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+{% endif %}
+{%- endmacro %}
+
+{# Phân trang: giữ nguyên các tham số lọc hiện tại (status, q, tab...) #}
+{% macro pager(pg) -%}
+{% if pg.total %}
+<nav class="pager" aria-label="Phân trang">
+  <span class="muted">Hiển thị {{ pg.first }}–{{ pg.last }} / {{ pg.total }}</span>
+  {% if pg.pages > 1 %}
+  <ul class="pager__list">
+    {% set args = request.args.to_dict() %}
+    <li><a class="pager__link" href="{{ url_for(request.endpoint, **dict(args, page=pg.page - 1)) }}" aria-label="Trang trước"{% if pg.page <= 1 %} aria-disabled="true" tabindex="-1"{% endif %}>{{ icon('chevron-left') }}</a></li>
+    {% for n in range(1, pg.pages + 1) %}
+      {% if n == 1 or n == pg.pages or (n - pg.page)|abs <= 1 %}
+      <li><a class="pager__link" href="{{ url_for(request.endpoint, **dict(args, page=n)) }}"{% if n == pg.page %} aria-current="page"{% endif %}>{{ n }}</a></li>
+      {% elif (n - pg.page)|abs == 2 %}
+      <li><span class="pager__link" aria-hidden="true">…</span></li>
+      {% endif %}
+    {% endfor %}
+    <li><a class="pager__link" href="{{ url_for(request.endpoint, **dict(args, page=pg.page + 1)) }}" aria-label="Trang sau"{% if pg.page >= pg.pages %} aria-disabled="true" tabindex="-1"{% endif %}>{{ icon('chevron-right') }}</a></li>
+  </ul>
+  {% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}

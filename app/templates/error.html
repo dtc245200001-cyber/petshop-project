@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Lỗi {{ code }} - PetShop{% endblock %}
+{% from "_macros.html" import icon with context %}
+{% block title %}Lỗi {{ code }}{% endblock %}
 {% block content %}
-<div class="card" style="text-align:center">
-  <h1 style="font-size:56px;margin:0">{{ code }}</h1>
+<div class="errorpage">
+  <svg class="errorpage__art" viewBox="0 0 180 180" aria-hidden="true" focusable="false"><use href="#art-error"></use></svg>
+  <div class="errorpage__code">{{ code }}</div>
+  <h1>{% if code == 404 %}Không tìm thấy trang{% elif code == 403 %}Bạn không có quyền truy cập{% elif code == 400 %}Yêu cầu không hợp lệ{% else %}Có lỗi xảy ra{% endif %}</h1>
   <p>{{ message }}</p>
-  {% if user and user.role == 'admin' %}
-    <a class="btn" href="{{ url_for('admin_dashboard') }}">Về trang quản trị</a>
-  {% elif user %}
-    <a class="btn" href="{{ url_for('home') }}">Về trang chủ</a>
+  {% if user %}
+  <a class="btn" href="{{ url_for('admin_dashboard' if user.role == 'admin' else 'home') }}">{{ icon('home') }}Về trang chủ</a>
   {% else %}
-    <a class="btn" href="{{ url_for('login') }}">Về trang đăng nhập</a>
+  <a class="btn" href="{{ url_for('login') }}">{{ icon('arrow-right') }}Đến trang đăng nhập</a>
   {% endif %}
 </div>
 {% endblock %}

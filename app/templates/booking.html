@@ -1,34 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Đặt lịch dịch vụ - PetShop{% endblock %}
+{% from "_macros.html" import icon, csrf, pet_av, empty, errors_box with context %}
+{% block title %}Đặt lịch{% endblock %}
 {% block content %}
-<h2>Đặt lịch dịch vụ</h2>
+<div class="page-head">
+  <div><h1>Đặt lịch chăm sóc</h1><p class="page-head__desc">Chọn thú cưng, dịch vụ và thời gian. Cửa hàng sẽ xác nhận lịch của bạn.</p></div>
+</div>
 
 {% if not pets %}
-<div class="card">
-  Bạn chưa có thú cưng nào. Hãy <a href="{{ url_for('my_pets') }}">thêm thú cưng</a> trước khi đặt lịch.
-</div>
+  {% call empty('Bạn cần thêm thú cưng trước', 'Hãy tạo hồ sơ thú cưng để có thể đặt lịch dịch vụ.') %}
+  <a class="btn" href="{{ url_for('my_pets') }}">{{ icon('plus') }}Thêm thú cưng</a>
+  {% endcall %}
+{% elif not services %}
+  {% call empty('Cửa hàng chưa có dịch vụ nào', 'Vui lòng quay lại sau.') %}{% endcall %}
 {% else %}
-<form method="post" action="{{ url_for('booking') }}" class="card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>1. Chọn thú cưng
-    <select name="pet_id" required>
-      {% for p in pets %}
-      <option value="{{ p.id }}" {% if p.id == selected_pet %}selected{% endif %}>{{ p.name }} ({{ p.species }})</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>2. Chọn dịch vụ
-    <select name="service_id" required>
-      {% for s in services %}
-      <option value="{{ s.id }}" {% if s.id == selected_service %}selected{% endif %}>{{ s.name }} - {{ s.price|vnd }} ({{ s.duration_min }} phút)</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>3. Chọn thời gian
-    <input type="datetime-local" name="appt_time" required min="{{ min_time }}" value="{{ form.get('appt_time', '') if form else '' }}">
-  </label>
-  <p class="muted">4. Bấm xác nhận để gửi yêu cầu. Lịch hẹn sẽ ở trạng thái "Chờ xác nhận" cho đến khi cửa hàng duyệt.</p>
-  <button type="submit">Xác nhận đặt lịch</button>
+{{ errors_box(errors) }}
+<form method="post" action="{{ url_for('booking') }}" class="booking" data-booking>
+  {{ csrf() }}
+  <div>
+    <section class="card step" aria-labelledby="st1">
+      <div class="step__head"><span class="step__no">1</span><h2 id="st1">Chọn thú cưng</h2></div>
+      <div class="choices">
+        {% for p in pets %}
+        <label class="choice">
+          <input type="radio" name="pet_id" value="{{ p.id }}" data-name="{{ p.name }}"{% if selected_pet == p.id %} checked{% endif %} required>
+          <span class="choice__body">{{ pet_av(p.species, 'sm') }}<span><span class="choice__title">{{ p.name }}</span><br><span class="choice__sub">{{ p.species }}</span></span><span class="choice__tick">{{ icon('check') }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="st2">
+      <div class="step__head"><span class="step__no">2</span><h2 id="st2">Chọn dịch vụ</h2></div>
+      <div class="choices">
+        {% for s in services %}
+        <label class="choice">
+          <input type="radio" name="service_id" value="{{ s.id }}" data-name="{{ s.name }}" data-price="{{ s.price }}" data-duration="{{ s.duration_min }}"{% if selected_service == s.id %} checked{% endif %} required>
+          <span class="choice__body"><span class="choice__emoji" aria-hidden="true">{{ s.icon or '🐾' }}</span><span><span class="choice__title">{{ s.name }}</span><br><span class="choice__sub">{{ s.price|vnd }}</span><br><span class="choice__sub">{{ s.duration_min }} phút</span></span><span class="choice__tick">{{ icon('check') }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card step" aria-labelledby="st3">
+      <div class="step__head"><span class="step__no">3</span><h2 id="st3">Chọn thời gian</h2></div>
+      <div class="field">
+        <label class="field__label" for="appt_time">Ngày và giờ hẹn</label>
+        <input class="input" id="appt_time" name="appt_time" type="datetime-local" min="{{ min_time }}" value="{{ form.get('appt_time', '') }}" required>
+        <span class="field__hint">Chỉ nhận đặt lịch trong vòng 1 năm tới.</span>
+      </div>
+      <div class="chips" aria-label="Chọn nhanh">
+        <button class="chip" type="button" data-quick-time="09:00" data-day-offset="1">Mai · 09:00</button>
+        <button class="chip" type="button" data-quick-time="14:00" data-day-offset="1">Mai · 14:00</button>
+        <button class="chip" type="button" data-quick-time="17:00" data-day-offset="1">Mai · 17:00</button>
+        <button class="chip" type="button" data-quick-time="09:00" data-day-offset="7">Tuần sau · 09:00</button>
+      </div>
+    </section>
+  </div>
+
+  <aside class="card summary" aria-labelledby="sum-title">
+    <h2 id="sum-title">Tóm tắt lịch hẹn</h2>
+    <dl class="mt-4">
+      <div class="summary__row"><dt>Thú cưng</dt><dd data-sum="pet">Chưa chọn</dd></div>
+      <div class="summary__row"><dt>Dịch vụ</dt><dd data-sum="service">Chưa chọn</dd></div>
+      <div class="summary__row"><dt>Thời lượng</dt><dd data-sum="duration">—</dd></div>
+      <div class="summary__row"><dt>Thời gian</dt><dd data-sum="time">Chưa chọn</dd></div>
+    </dl>
+    <div class="summary__total"><span>Tạm tính</span><b data-sum="price">—</b></div>
+    <button class="btn btn--lg btn--block mt-6" type="submit"><span class="btn__label">Xác nhận đặt lịch</span></button>
+    <p class="field__hint mt-4">Bạn có thể hủy lịch khi đang ở trạng thái “Chờ xác nhận”.</p>
+  </aside>
 </form>
 {% endif %}
 {% endblock %}

@@ -1,102 +1,142 @@
+{% from "_macros.html" import icon, csrf with context %}
+{% set ep = request.endpoint or '' %}
+{% set is_admin = user and user.role == 'admin' %}
 <!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}PetShop Manager{% endblock %}</title>
-  <style>
-    *{box-sizing:border-box}
-    body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
-    header{background:#2f6f5e}
-    header.admin{background:#2b3a55}
-    .bar{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
-    .bar a,.linkbtn{color:#fff;text-decoration:none;font-weight:600;background:none;border:0;padding:0;font:inherit;font-weight:600;cursor:pointer}
-    .bar a:hover,.linkbtn:hover{text-decoration:underline}
-    .brand{color:#fff;font-weight:800;font-size:18px}
-    .hello{color:#d8efe7;margin-left:auto}
-    .spacer{margin-left:auto}
-    form.inline{display:inline;margin:0}
-    main{max-width:1100px;margin:24px auto;padding:0 16px}
-    .card{background:#fff;border-radius:8px;padding:16px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .auth{max-width:420px;margin:40px auto}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-    .svc{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;flex-direction:column}
-    .svc .pic{background:linear-gradient(135deg,#cfe9e0,#e9f2ef);font-size:56px;text-align:center;padding:18px 0}
-    .svc .body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
-    .svc .price{color:#2f6f5e;font-weight:700;font-size:18px}
-    .svc .meta{color:#666;font-size:14px}
-    .hero{background:linear-gradient(135deg,#2f6f5e,#4b9a84);color:#fff;border-radius:10px;padding:28px;margin-bottom:20px}
-    .hero h1{margin:0 0 6px}
-    .stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-    .stat{flex:1;min-width:150px;background:#fff;border-radius:8px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-    .stat b{display:block;font-size:28px;color:#2f6f5e}
-    .stat.money b{font-size:22px;color:#2b3a55}
-    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}
-    th,td{padding:10px 12px;border-bottom:1px solid #e5e8eb;text-align:left;vertical-align:middle}
-    th{background:#e9f2ef}
-    label{display:block;margin:8px 0;font-size:14px}
-    input,select,textarea{padding:8px;border:1px solid #bbb;border-radius:4px;display:block;margin-top:4px;width:100%;max-width:420px;font:inherit}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .row label{flex:1;min-width:150px}
-    .row input,.row select{max-width:none}
-    button,.btn{background:#2f6f5e;color:#fff;border:0;padding:8px 14px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block;font:inherit}
-    button.danger,.btn.danger{background:#b3402f;padding:5px 10px}
-    button.small,.btn.small{padding:5px 10px;font-size:14px}
-    button.gray,.btn.gray{background:#667}
-    .badge{padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
-    .badge.warn{background:#fff3cd;color:#8a6d00}
-    .badge.info{background:#d9ecff;color:#1b5a99}
-    .badge.ok{background:#d6f0dc;color:#1c6b32}
-    .badge.bad{background:#f8d7d3;color:#9b2c20}
-    .flash{padding:10px 14px;border-radius:6px;margin-bottom:12px}
-    .flash.success{background:#d6f0dc;color:#1c6b32}
-    .flash.error{background:#f8d7d3;color:#9b2c20}
-    .flash.info{background:#d9ecff;color:#1b5a99}
-    .muted{color:#777;font-size:14px}
-    .filters a{margin-right:10px}
-    .actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-    .actions select{width:auto;margin:0}
-  </style>
+  <meta name="theme-color" content="#1E7F6D">
+  <title>{% block title %}PetShop{% endblock %} · PetShop</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=asset_v) }}">
+  <script src="{{ url_for('static', filename='js/app.js', v=asset_v) }}" defer></script>
 </head>
-<body>
-  <header class="{% if user and user.role == 'admin' %}admin{% endif %}">
-    <div class="bar">
-      {% if user and user.role == 'admin' %}
-        <span class="brand">🐾 PetShop Admin</span>
-        <a href="{{ url_for('admin_dashboard') }}">Tổng quan</a>
-        <a href="{{ url_for('admin_appointments') }}">Quản lý Lịch hẹn</a>
-        <a href="{{ url_for('admin_customers') }}">Quản lý Khách hàng</a>
-        <a href="{{ url_for('admin_pets') }}">Quản lý Thú cưng</a>
-        <a href="{{ url_for('admin_services') }}">Quản lý Dịch vụ</a>
-        <form class="inline spacer" method="post" action="{{ url_for('logout') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="linkbtn" type="submit">Đăng xuất</button>
-        </form>
-      {% elif user %}
-        <span class="brand">🐾 PetShop</span>
-        <a href="{{ url_for('home') }}">Trang chủ</a>
-        <a href="{{ url_for('my_pets') }}">Thú cưng của tôi</a>
-        <a href="{{ url_for('booking') }}">Đặt lịch dịch vụ</a>
-        <a href="{{ url_for('my_appointments') }}">Lịch hẹn cá nhân</a>
-        <span class="hello">Xin chào, {{ user.name }}</span>
-        <form class="inline" method="post" action="{{ url_for('logout') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="linkbtn" type="submit">Đăng xuất</button>
-        </form>
-      {% else %}
-        <span class="brand">🐾 PetShop</span>
-        <a href="{{ url_for('login') }}">Đăng nhập</a>
-        <a href="{{ url_for('register') }}">Đăng ký</a>
-      {% endif %}
-    </div>
-  </header>
-  <main>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="flash {{ category }}">{{ message }}</div>
+<body class="{% if is_admin %}layout-admin{% endif %}{% if user %} has-tabbar{% endif %}">
+<a class="skip-link" href="#main">Bỏ qua điều hướng, tới nội dung chính</a>
+{% include "_icons.html" %}
+
+{% if is_admin %}
+{% set admin_nav = [
+  ('admin_dashboard', 'Tổng quan', 'grid', ['admin_dashboard']),
+  ('admin_appointments', 'Lịch hẹn', 'calendar', ['admin_appointments', 'admin_update_status', 'admin_delete_appointment']),
+  ('admin_services', 'Dịch vụ', 'tag', ['admin_services', 'admin_service_edit', 'admin_delete_service']),
+  ('admin_customers', 'Khách hàng', 'users', ['admin_customers', 'admin_delete_customer']),
+  ('admin_pets', 'Thú cưng', 'paw', ['admin_pets', 'admin_delete_pet']),
+] %}
+<div class="shell">
+<aside class="sidebar" aria-label="Menu quản trị">
+  <div class="sidebar__brand">
+    <a class="brand" href="{{ url_for('admin_dashboard') }}" aria-label="PetShop – Tổng quan">
+      <span class="brand__mark">{{ icon('paw') }}</span><span class="brand__text">PetShop</span>
+    </a>
+    <span class="brand__tag">Quản trị</span>
+  </div>
+  <nav class="sidebar__nav" aria-label="Quản trị">
+    <div class="sidebar__label">Quản lý</div>
+    {% for endpoint, label, ic, group in admin_nav %}
+    <a class="sidebar__link" href="{{ url_for(endpoint) }}" title="{{ label }}"{% if ep in group %} aria-current="page"{% endif %}>{{ icon(ic) }}<span class="sidebar__text">{{ label }}</span></a>
+    {% endfor %}
+  </nav>
+  <div class="sidebar__foot">PetShop v3 · Quản trị viên</div>
+</aside>
+<div class="shell__main">
+{% endif %}
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="{{ url_for('admin_dashboard' if is_admin else ('home' if user else 'login')) }}" aria-label="PetShop – Trang chủ">
+      <span class="brand__mark">{{ icon('paw') }}</span><span class="brand__text">PetShop</span>
+    </a>
+    {% if user and not is_admin %}
+    {% set user_nav = [
+      ('home', 'Trang chủ', 'home', ['home']),
+      ('my_pets', 'Thú cưng', 'paw', ['my_pets']),
+      ('booking', 'Đặt lịch', 'calendar', ['booking']),
+      ('my_appointments', 'Lịch hẹn', 'clipboard', ['my_appointments', 'cancel_appointment']),
+    ] %}
+    <nav class="nav" aria-label="Menu chính">
+      {% for endpoint, label, ic, group in user_nav %}
+      <a class="nav__link" href="{{ url_for(endpoint) }}"{% if ep in group %} aria-current="page"{% endif %}>{{ icon(ic) }}{{ label }}</a>
       {% endfor %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </main>
+    </nav>
+    {% endif %}
+    <div class="topbar__spacer"></div>
+    {% if user %}
+    <details class="menu">
+      <summary aria-label="Menu tài khoản của {{ user.name }}">
+        <span class="avatar">{{ user.name|initials }}</span>
+        <span class="menu__name">{{ user.name }}</span>
+        {{ icon('chevron-down', 'icon--sm') }}
+      </summary>
+      <div class="menu__panel">
+        <div class="menu__who"><strong>{{ user.name }}</strong><span>{{ user.email }}</span></div>
+        <a class="menu__item" href="{{ url_for('change_password') }}">{{ icon('key') }}Đổi mật khẩu</a>
+        <form method="post" action="{{ url_for('logout') }}">{{ csrf() }}
+          <button class="menu__item" type="submit" data-no-loading>{{ icon('logout') }}Đăng xuất</button>
+        </form>
+      </div>
+    </details>
+    {% else %}
+    <div class="row">
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('login') }}">Đăng nhập</a>
+      <a class="btn btn--sm" href="{{ url_for('register') }}">Đăng ký</a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<main id="main" class="container page">
+  {% for category, message in get_flashed_messages(with_categories=true) if category == 'error' %}
+  <div class="alert alert--bad" role="alert">{{ icon('alert') }}<span>{{ message }}</span></div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+
+{% if is_admin %}</div></div>{% endif %}
+
+{% if user %}
+<nav class="tabbar" aria-label="Điều hướng nhanh">
+  <ul class="tabbar__list">
+    {% if is_admin %}
+      {% for endpoint, label, ic, group in admin_nav %}
+      <li><a class="tabbar__link" href="{{ url_for(endpoint) }}"{% if ep in group %} aria-current="page"{% endif %}>{{ icon(ic) }}<span>{{ label }}</span></a></li>
+      {% endfor %}
+    {% else %}
+      {% for endpoint, label, ic, group in user_nav %}
+      <li><a class="tabbar__link" href="{{ url_for(endpoint) }}"{% if ep in group %} aria-current="page"{% endif %}>{{ icon(ic) }}<span>{{ label }}</span></a></li>
+      {% endfor %}
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+{# Thông báo thành công / thông tin: hiện dạng toast, tự tắt sau vài giây #}
+<div class="toasts" role="status" aria-live="polite">
+  {% for category, message in get_flashed_messages(with_categories=true) if category != 'error' %}
+  <div class="toast toast--{{ 'ok' if category == 'success' else 'info' }}">
+    {{ icon('check-circle' if category == 'success' else 'info') }}
+    <span class="toast__msg">{{ message }}</span>
+    <button class="toast__close" type="button" aria-label="Đóng thông báo">{{ icon('x', 'icon--sm') }}</button>
+  </div>
+  {% endfor %}
+</div>
+
+{# Hộp thoại xác nhận dùng chung: nút có thuộc tính data-confirm sẽ mở hộp này #}
+<dialog class="dialog dialog--sm" id="confirm-dialog" aria-labelledby="confirm-title">
+  <div class="dialog__head">
+    <div>
+      <div class="dialog__icon">{{ icon('alert') }}</div>
+      <h2 id="confirm-title" data-confirm-title>Bạn chắc chắn chứ?</h2>
+      <p data-confirm-text></p>
+    </div>
+  </div>
+  <div class="dialog__foot">
+    <button class="btn btn--secondary" type="button" data-close-dialog>Hủy bỏ</button>
+    <button class="btn btn--danger" type="button" data-confirm-ok>Xác nhận</button>
+  </div>
+</dialog>
+
+{% block dialogs %}{% endblock %}
 </body>
 </html>

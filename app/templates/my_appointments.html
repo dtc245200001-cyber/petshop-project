@@ -1,28 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Lịch hẹn cá nhân - PetShop{% endblock %}
+{% from "_macros.html" import icon, csrf, pet_av, badge, empty, pager with context %}
+{% block title %}Lịch hẹn của tôi{% endblock %}
 {% block content %}
-<h2>Lịch hẹn cá nhân</h2>
-<table>
-  <tr><th>Thời gian</th><th>Thú cưng</th><th>Dịch vụ</th><th>Giá</th><th>Trạng thái</th><th></th></tr>
+<div class="page-head">
+  <div><h1>Lịch hẹn của tôi</h1><p class="page-head__desc">Theo dõi trạng thái các lịch chăm sóc.</p></div>
+  <div class="page-head__actions"><a class="btn" href="{{ url_for('booking') }}">{{ icon('plus') }}Đặt lịch mới</a></div>
+</div>
+
+<nav class="filter-tabs" aria-label="Lọc lịch hẹn">
+  <a class="filter-tab" href="{{ url_for('my_appointments') }}"{% if tab == 'upcoming' %} aria-current="true"{% endif %}>Sắp tới <small>{{ counts.upcoming }}</small></a>
+  <a class="filter-tab" href="{{ url_for('my_appointments', tab='history') }}"{% if tab == 'history' %} aria-current="true"{% endif %}>Lịch sử <small>{{ counts.history }}</small></a>
+</nav>
+
+{% if rows %}
+<ul class="appt-list">
   {% for r in rows %}
-  <tr>
-    <td>{{ r.appt_time }}</td>
-    <td>{{ r.pet }}</td>
-    <td>{{ r.service }}</td>
-    <td>{{ r.price|vnd }}</td>
-    <td><span class="badge {{ r.status|status_class }}">{{ r.status }}</span></td>
-    <td>
+  <li class="appt appt--{{ r.status|status_class }}">
+    <div class="appt__date"><small>Th{{ r.mon|int }}</small><b>{{ r.day }}</b></div>
+    <div>
+      <div class="appt__title">{{ r.service }}</div>
+      <div class="appt__meta">
+        <span>{{ icon('paw', 'icon--sm') }}{{ r.pet }}</span>
+        <span>{{ icon('clock', 'icon--sm') }}{{ r.hm }} · {{ r.duration_min }} phút</span>
+      </div>
+    </div>
+    <div class="appt__side">
+      {{ badge(r.status) }}
+      <span class="appt__price">{{ r.price|vnd }}</span>
       {% if r.status == pending %}
-      <form class="inline" method="post" action="{{ url_for('cancel_appointment', appt_id=r.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="danger" type="submit">Hủy lịch</button>
+      <form class="inline-form" method="post" action="{{ url_for('cancel_appointment', appt_id=r.id) }}">
+        {{ csrf() }}
+        <button class="btn btn--danger-soft btn--sm" type="submit" data-confirm="Lịch «{{ r.service }}» của {{ r.pet }} lúc {{ r.appt_time }} sẽ bị hủy." data-confirm-title="Hủy lịch hẹn?" data-confirm-label="Hủy lịch" data-no-loading>{{ icon('x', 'icon--sm') }}Hủy lịch</button>
       </form>
       {% endif %}
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="6">Bạn chưa có lịch hẹn nào. <a href="{{ url_for('booking') }}">Đặt lịch ngay</a>.</td></tr>
+    </div>
+  </li>
   {% endfor %}
-</table>
-<p class="muted">Bạn chỉ có thể hủy lịch khi lịch đang ở trạng thái "Chờ xác nhận".</p>
+</ul>
+{{ pager(pg) }}
+{% else %}
+  {% if tab == 'upcoming' %}
+  {% call empty('Chưa có lịch sắp tới', 'Đặt lịch chăm sóc cho bé cưng của bạn chỉ trong vài bước.') %}
+  <a class="btn" href="{{ url_for('booking') }}">{{ icon('calendar') }}Đặt lịch ngay</a>
+  {% endcall %}
+  {% else %}
+  {% call empty('Chưa có lịch sử', 'Các lịch đã hoàn thành, đã hủy hoặc đã qua sẽ hiện ở đây.') %}{% endcall %}
+  {% endif %}
+{% endif %}
 {% endblock %}

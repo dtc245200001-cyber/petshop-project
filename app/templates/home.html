@@ -1,37 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Trang chủ - PetShop{% endblock %}
+{% from "_macros.html" import icon, empty with context %}
+{% block title %}Trang chủ{% endblock %}
 {% block content %}
-<div class="hero">
-  <h1>Chào mừng {{ user.name }} đến với PetShop 🐶🐱</h1>
-  <p>Chăm sóc thú cưng chuyên nghiệp: tắm spa, cắt tỉa, khám sức khỏe. Đặt lịch chỉ với vài thao tác.</p>
-</div>
-
-<h2>Dịch vụ nổi bật</h2>
-<div class="grid">
-  {% for s in services %}
-  <div class="svc">
-    <div class="pic">{{ s.icon }}</div>
-    <div class="body">
-      <strong>{{ s.name }}</strong>
-      <span class="price">{{ s.price|vnd }}</span>
-      <span class="meta">⏱ {{ s.duration_min }} phút</span>
-      <span class="meta">{{ s.description or '' }}</span>
-      <a class="btn" href="{{ url_for('booking', service_id=s.id) }}">Đặt lịch ngay</a>
+<section class="hero" aria-labelledby="hero-title">
+  <div>
+    <span class="eyebrow">{{ icon('heart', 'icon--sm') }}Xin chào, {{ user.name }}</span>
+    <h1 id="hero-title">Bé cưng của bạn xứng đáng được chăm sóc tốt nhất</h1>
+    <p>Chọn dịch vụ, chọn giờ, vậy là xong. PetShop lo phần còn lại.</p>
+    <div class="hero__actions">
+      <a class="btn btn--lg" href="{{ url_for('booking') }}">{{ icon('calendar') }}Đặt lịch ngay</a>
+      <a class="btn btn--lg btn--secondary" href="{{ url_for('my_pets') }}">{{ icon('paw') }}Thú cưng của tôi</a>
     </div>
   </div>
-  {% else %}
-  <p>Hiện chưa có dịch vụ nào.</p>
-  {% endfor %}
+  <svg class="hero__art" viewBox="0 0 360 300" aria-hidden="true" focusable="false"><use href="#art-hero"></use></svg>
+</section>
+
+<section class="stats-grid stats-grid--3 mt-6" aria-label="Tóm tắt của bạn">
+  <div class="stat"><span class="stat__icon stat__icon--cream">{{ icon('paw') }}</span><div><div class="stat__label">Thú cưng</div><div class="stat__value">{{ summary.pets }}</div></div></div>
+  <div class="stat"><span class="stat__icon stat__icon--sky">{{ icon('calendar') }}</span><div><div class="stat__label">Lịch sắp tới</div><div class="stat__value">{{ summary.upcoming }}</div></div></div>
+  <div class="stat"><span class="stat__icon">{{ icon('clock') }}</span><div><div class="stat__label">Lịch gần nhất</div>
+    {% if next_appt %}<div class="stat__value stat__value--sm">{{ next_appt.appt_time }}</div><div class="stat__sub">{{ next_appt.pet }} · {{ next_appt.service }}</div>
+    {% else %}<div class="stat__value stat__value--sm">Chưa có</div><div class="stat__sub">Hãy đặt lịch đầu tiên</div>{% endif %}
+  </div></div>
+</section>
+
+<div class="section-title">
+  <h2>Dịch vụ của PetShop</h2>
+  <form class="searchbar" method="get" action="{{ url_for('home') }}" role="search" data-no-loading>
+    <div class="input-icon">{{ icon('search') }}<input class="input" type="search" name="q" value="{{ q }}" placeholder="Tìm dịch vụ…" aria-label="Tìm dịch vụ" maxlength="60"></div>
+    <button class="btn btn--secondary" type="submit">Tìm</button>
+  </form>
 </div>
 
-<h2 style="margin-top:28px">Về cửa hàng &amp; ưu đãi</h2>
-<div class="card">
-  <p><strong>PetShop</strong> là cửa hàng chăm sóc thú cưng với đội ngũ giàu kinh nghiệm, trang thiết bị sạch sẽ và an toàn cho các bé.</p>
-  <ul>
-    <li>🎁 Giảm 10% cho lần spa đầu tiên của khách hàng mới.</li>
-    <li>🎀 Combo tắm + cắt tỉa lông: tiết kiệm đến 15%.</li>
-    <li>🩺 Nhắc lịch khám sức khỏe định kỳ cho thú cưng.</li>
-  </ul>
-  <p class="muted">(Nội dung ưu đãi mang tính minh họa cho đồ án.)</p>
+{% if services %}
+<div class="cards-grid">
+  {% for s in services %}
+  <article class="svc-card">
+    <div class="svc-card__pic" aria-hidden="true">
+      {% if s.id in images %}<img src="{{ url_for('static', filename='service_' ~ s.id ~ '.jpg') }}" alt="" loading="lazy">{% else %}<span>{{ s.icon or '🐾' }}</span>{% endif %}
+    </div>
+    <div class="svc-card__body">
+      <h3 class="svc-card__name">{{ s.name }}</h3>
+      <div class="svc-card__meta">{{ icon('clock', 'icon--sm') }}{{ s.duration_min }} phút</div>
+      <p class="svc-card__desc muted">{{ s.description or 'Dịch vụ chăm sóc chuyên nghiệp cho thú cưng của bạn.' }}</p>
+      <div class="svc-card__price">{{ s.price|vnd }}</div>
+      <a class="btn btn--soft" href="{{ url_for('booking', service_id=s.id) }}">Đặt dịch vụ này{{ icon('arrow-right') }}</a>
+    </div>
+  </article>
+  {% endfor %}
 </div>
+{% else %}
+  {% call empty('Không tìm thấy dịch vụ', 'Thử từ khóa khác hoặc xem tất cả dịch vụ.') %}
+  <a class="btn btn--secondary" href="{{ url_for('home') }}">Xem tất cả dịch vụ</a>
+  {% endcall %}
+{% endif %}
 {% endblock %}

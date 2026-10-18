@@ -1,0 +1,43 @@
+{% from "_macros.html" import icon, csrf with context %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1E7F6D">
+  <title>{% block title %}Đăng nhập{% endblock %} · PetShop</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=asset_v) }}">
+  <script src="{{ url_for('static', filename='js/app.js', v=asset_v) }}" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Bỏ qua, tới biểu mẫu</a>
+{% include "_icons.html" %}
+<div class="auth">
+  <aside class="auth__panel">
+    <a class="brand" href="{{ url_for('login') }}"><span class="brand__mark">{{ icon('paw') }}</span><span class="brand__text">PetShop</span></a>
+    <div>
+      <h2>Chăm sóc thú cưng, nhẹ nhàng và đáng tin cậy</h2>
+      <p>Đặt lịch spa, tắm rửa, khám sức khỏe cho thú cưng chỉ trong vài bước.</p>
+    </div>
+    <svg class="auth__art" viewBox="0 0 360 300" aria-hidden="true" focusable="false"><use href="#art-hero"></use></svg>
+    <ul class="auth__points">
+      <li>{{ icon('calendar') }}Đặt lịch nhanh, xem trạng thái theo thời gian thực</li>
+      <li>{{ icon('paw') }}Quản lý hồ sơ nhiều thú cưng của bạn</li>
+      <li>{{ icon('shield') }}Thông tin được bảo vệ, mật khẩu được băm an toàn</li>
+    </ul>
+  </aside>
+  <main id="main" class="auth__main">
+    <div class="auth__box">
+      <a class="brand" href="{{ url_for('login') }}"><span class="brand__mark">{{ icon('paw') }}</span><span class="brand__text">PetShop</span></a>
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+      {% set cls = {'error': 'bad', 'success': 'ok'}.get(category, 'info') %}
+      <div class="alert alert--{{ cls }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ icon({'bad': 'alert', 'ok': 'check-circle', 'info': 'info'}[cls]) }}<span>{{ message }}</span></div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+      <p class="auth__legal">© PetShop · Đồ án Đề 28</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>

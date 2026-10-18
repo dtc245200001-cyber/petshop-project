@@ -1,30 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Thú cưng của tôi - PetShop{% endblock %}
+{% from "_macros.html" import icon, csrf, pet_av, empty, errors_box with context %}
+{% block title %}Thú cưng của tôi{% endblock %}
 {% block content %}
-<h2>Thú cưng của tôi</h2>
+<div class="page-head">
+  <div><h1>Thú cưng của tôi</h1><p class="page-head__desc">Quản lý hồ sơ để đặt lịch nhanh hơn.</p></div>
+  <div class="page-head__actions"><button class="btn" type="button" data-open-dialog="pet-dialog">{{ icon('plus') }}Thêm thú cưng</button></div>
+</div>
 
-<form method="post" action="{{ url_for('my_pets') }}" class="card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <h3 style="margin-top:0">Thêm thú cưng mới</h3>
-  <div class="row">
-    <label>Tên <input type="text" name="name" required maxlength="100"></label>
-    <label>Loài
-      <select name="species" required>
-        {% for sp in species_list %}<option value="{{ sp }}">{{ sp }}</option>{% endfor %}
-      </select>
-    </label>
-    <label>Giống <input type="text" name="breed" maxlength="80"></label>
-    <label>Tuổi <input type="number" name="age" step="0.1" min="0" max="50"></label>
-  </div>
-  <button type="submit">Thêm thú cưng</button>
-</form>
-
-<table>
-  <tr><th>Tên</th><th>Loài</th><th>Giống</th><th>Tuổi</th></tr>
+{% if pets %}
+<div class="cards-grid">
   {% for p in pets %}
-  <tr><td>{{ p.name }}</td><td>{{ p.species }}</td><td>{{ p.breed or '-' }}</td><td>{{ p.age if p.age is not none else '-' }}</td></tr>
-  {% else %}
-  <tr><td colspan="4">Bạn chưa có thú cưng nào. Hãy thêm bé đầu tiên ở phía trên.</td></tr>
+  <article class="pet-card">
+    <div class="pet-card__top">
+      {{ pet_av(p.species, 'lg') }}
+      <div><h2 class="pet-card__name">{{ p.name }}</h2><span class="badge badge--mint">{{ p.species }}</span></div>
+    </div>
+    <dl class="pet-card__facts">
+      <div><dt>Giống</dt><dd>{{ p.breed or 'Chưa rõ' }}</dd></div>
+      <div><dt>Tuổi</dt><dd>{% if p.age is not none %}{{ '%g'|format(p.age|float) }} tuổi{% else %}Chưa rõ{% endif %}</dd></div>
+    </dl>
+    <a class="btn btn--soft" href="{{ url_for('booking') }}">{{ icon('calendar') }}Đặt lịch</a>
+  </article>
   {% endfor %}
-</table>
+</div>
+{% else %}
+  {% call empty('Bạn chưa có thú cưng nào', 'Thêm bé cưng đầu tiên để bắt đầu đặt lịch chăm sóc.') %}
+  <button class="btn" type="button" data-open-dialog="pet-dialog">{{ icon('plus') }}Thêm thú cưng</button>
+  {% endcall %}
+{% endif %}
+{% endblock %}
+
+{% block dialogs %}
+<dialog class="dialog" id="pet-dialog" aria-labelledby="pet-dialog-title"{% if errors %} data-autoopen{% endif %}>
+  <form method="post" action="{{ url_for('my_pets') }}">
+    {{ csrf() }}
+    <div class="dialog__head"><div><h2 id="pet-dialog-title">Thêm thú cưng</h2><p>Thông tin cơ bản về bé cưng của bạn.</p></div>
+      <button class="btn btn--ghost btn--icon" type="button" data-close-dialog aria-label="Đóng">{{ icon('x') }}</button></div>
+    <div class="dialog__body">
+      {{ errors_box(errors) }}
+      <div class="form-grid">
+        <div class="field span-2"><label class="field__label" for="pet-name">Tên thú cưng</label>
+          <input class="input" id="pet-name" name="name" value="{{ form.get('name', '') }}" maxlength="100" required></div>
+        <div class="field"><label class="field__label" for="pet-species">Loài</label>
+          <select class="select" id="pet-species" name="species" required>
+            {% for sp in species_list %}<option value="{{ sp }}"{% if form.get('species') == sp %} selected{% endif %}>{{ sp }}</option>{% endfor %}
+          </select></div>
+        <div class="field"><label class="field__label" for="pet-age">Tuổi <span class="muted">(năm)</span></label>
+          <input class="input" id="pet-age" name="age" type="number" min="0" max="50" step="0.1" value="{{ form.get('age', '') }}"></div>
+        <div class="field span-2"><label class="field__label" for="pet-breed">Giống <span class="muted">(không bắt buộc)</span></label>
+          <input class="input" id="pet-breed" name="breed" value="{{ form.get('breed', '') }}" maxlength="80"></div>
+      </div>
+    </div>
+    <div class="dialog__foot">
+      <button class="btn btn--secondary" type="button" data-close-dialog>Hủy</button>
+      <button class="btn" type="submit"><span class="btn__label">Lưu thú cưng</span></button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}

@@ -1,17 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Sửa dịch vụ - Admin{% endblock %}
+{% from "_macros.html" import icon, csrf, errors_box with context %}
+{% block title %}Sửa dịch vụ{% endblock %}
 {% block content %}
-<h2>Sửa dịch vụ #{{ svc.id }}</h2>
-<form method="post" action="{{ url_for('admin_service_edit', service_id=svc.id) }}" class="card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="row">
-    <label>Tên dịch vụ <input type="text" name="name" required maxlength="100" value="{{ svc.name }}"></label>
-    <label>Giá (VNĐ) <input type="number" name="price" required min="0" max="100000000" value="{{ svc.price|int }}"></label>
-    <label>Thời lượng (phút) <input type="number" name="duration_min" required min="5" max="600" value="{{ svc.duration_min }}"></label>
-    <label>Biểu tượng (emoji) <input type="text" name="icon" maxlength="8" value="{{ svc.icon }}"></label>
-  </div>
-  <label>Mô tả <input type="text" name="description" maxlength="300" style="max-width:none" value="{{ svc.description or '' }}"></label>
-  <button type="submit">Lưu thay đổi</button>
-  <a class="btn gray" href="{{ url_for('admin_services') }}">Quay lại</a>
-</form>
+<div class="page-head">
+  <div><h1>Sửa dịch vụ</h1><p class="page-head__desc">#{{ svc.id }} · {{ svc.name }}</p></div>
+  <div class="page-head__actions"><a class="btn btn--secondary" href="{{ url_for('admin_services') }}">{{ icon('chevron-left') }}Quay lại</a></div>
+</div>
+<div class="card card--narrow">
+  {{ errors_box(errors) }}
+  <form method="post" action="{{ url_for('admin_service_edit', service_id=svc.id) }}">
+    {{ csrf() }}
+    <div class="form-grid">
+      <div class="field span-2"><label class="field__label" for="name">Tên dịch vụ</label>
+        <input class="input" id="name" name="name" value="{{ svc.name }}" maxlength="100" required autofocus></div>
+      <div class="field"><label class="field__label" for="price">Giá (VNĐ)</label>
+        <input class="input" id="price" name="price" type="number" min="0" max="100000000" value="{{ svc.price }}" required></div>
+      <div class="field"><label class="field__label" for="duration_min">Thời lượng (phút)</label>
+        <input class="input" id="duration_min" name="duration_min" type="number" min="5" max="600" value="{{ svc.duration_min }}" required></div>
+      <div class="field"><label class="field__label" for="icon">Biểu tượng (emoji)</label>
+        <input class="input" id="icon" name="icon" value="{{ svc.icon or '🐾' }}" maxlength="8"></div>
+      <div class="field span-2"><label class="field__label" for="description">Mô tả</label>
+        <textarea class="textarea input" id="description" name="description" rows="4" maxlength="300">{{ svc.description or '' }}</textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit"><span class="btn__label">Lưu thay đổi</span></button>
+      <a class="btn btn--secondary" href="{{ url_for('admin_services') }}">Hủy</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

@@ -1,18 +1,23 @@
-{% extends "base.html" %}
-{% block title %}Đăng nhập - PetShop{% endblock %}
+{% extends "auth_base.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% block title %}Đăng nhập{% endblock %}
 {% block content %}
-<div class="card auth">
-  <h2>Đăng nhập</h2>
-  <form method="post" action="{{ url_for('login') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Email (tên đăng nhập)
-      <input type="email" name="email" required autofocus maxlength="100">
-    </label>
-    <label>Mật khẩu
-      <input type="password" name="password" required>
-    </label>
-    <button type="submit">Đăng nhập</button>
-  </form>
-  <p class="muted">Chưa có tài khoản? <a href="{{ url_for('register') }}">Đăng ký ngay</a></p>
-</div>
+<h1>Chào mừng trở lại</h1>
+<p class="auth__lead">Đăng nhập để đặt lịch và quản lý thú cưng của bạn.</p>
+<form method="post" action="{{ url_for('login') }}" class="stack">
+  {{ csrf() }}
+  <div class="field">
+    <label class="field__label" for="email">Email</label>
+    <div class="input-icon">{{ icon('mail') }}<input class="input" id="email" name="email" type="email" autocomplete="username" placeholder="ban@example.com" required autofocus></div>
+  </div>
+  <div class="field">
+    <label class="field__label" for="password">Mật khẩu</label>
+    <div class="input-wrap">
+      <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required>
+      <button class="input-wrap__btn" type="button" data-toggle-password="password" aria-label="Hiện mật khẩu" aria-pressed="false">{{ icon('eye') }}</button>
+    </div>
+  </div>
+  <button class="btn btn--lg btn--block" type="submit"><span class="btn__label">Đăng nhập</span></button>
+</form>
+<p class="auth__alt">Chưa có tài khoản? <a href="{{ url_for('register') }}">Đăng ký miễn phí</a></p>
 {% endblock %}
